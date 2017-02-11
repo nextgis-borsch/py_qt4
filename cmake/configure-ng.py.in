@@ -1329,6 +1329,7 @@ def generate_makefiles(target_config, verbose, no_timestamp, parts, tracing):
 
     # Set the SIP platform, version and feature flags.
     sip_flags = get_sip_flags(target_config)
+    print "SIP FLAGS: " + sip_flags
 
     # Go through the modules.
     for mname in target_config.pyqt_modules:

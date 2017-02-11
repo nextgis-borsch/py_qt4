@@ -37,11 +37,13 @@ check_version(PYQT_MAJOR_VERSION PYQT_MINOR_VERSION)
 set(VERSION "${PYQT_MAJOR_VERSION}.${PYQT_MINOR_VERSION}")
 report_version(${PROJECT_NAME} ${VERSION})
 
+set(INSTALL_SIP_DIR ${CMAKE_INSTALL_PREFIX}/share/pyqt4)
+
 set(CONFIGURE_ARGS --destdir ${CMAKE_INSTALL_PREFIX})
 set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --confirm-license --no-docstrings --qsci-api)
 set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --bindir ${CMAKE_INSTALL_PREFIX}/bin)
 set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --qsci-api-destdir ${CMAKE_INSTALL_PREFIX}/qsci)
-set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --sipdir ${CMAKE_INSTALL_PREFIX}/share/pyqt4)
+set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --sipdir ${INSTALL_SIP_DIR})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --debug)
@@ -103,8 +105,17 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different
 
 status_message("Configure")
 execute_process(COMMAND ${PYTHON_EXECUTABLE} configure-ng.py ${CONFIGURE_ARGS}
+    OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/configure.out
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
 )
+
+file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/configure.out CONF_OUT)
+
+foreach(CONF_OUT_LINE ${CONF_OUT})
+    if(CONF_OUT_LINE MATCHES "SIP FLAGS:")
+        string(SUBSTRING ${CONF_OUT_LINE} 11 -1 INSTALL_SIP_FLAGS)
+    endif()
+endforeach()
 
 #TODO: Fix on WINDOWS
 add_custom_target(build_qt ALL make -j ${CPU_COUNT}
@@ -126,9 +137,6 @@ if(OSX_FRAMEWORK)
 endif()
 
 if (REGISTER_PACKAGE)
-    set(INSTALL_SIP_DIR ${CMAKE_INSTALL_PREFIX}/share/pyqt4)
-    set(INSTALL_SIP_FLAGS "")
-
     set(EXPORT_PACKAGE_NAME PyQt4)
     string(TOUPPER ${EXPORT_PACKAGE_NAME} EXPORT_PACKAGE_NAME_UPPER)
     set(EXPORT_PACKAGE_LIB_NAME qt4)
