@@ -189,11 +189,6 @@ function(find_anyproject name)
             include(Qt4Macros)
         endif()
 
-        if(SIP_FOUND)
-            set(${UPPER_NAME}_BINARY_PATH ${${UPPER_NAME}_BINARY_PATH} CACHE INTERNAL "binary path for ${name}")
-            set(${UPPER_NAME}_DEFAULT_SIP_DIR ${${UPPER_NAME}_DEFAULT_SIP_DIR} CACHE INTERNAL "default ${name} dir")
-        endif()
-
         if(${UPPER_NAME}_LIBRARIES)
             set(TARGET_LINK_LIB ${TARGET_LINK_LIB} ${${UPPER_NAME}_LIBRARIES} PARENT_SCOPE)
         elseif(${UPPER_NAME}_LIBRARY)
