@@ -49,3 +49,4 @@ files = glob.glob(qt_install_bin_path + "/*")
 for f in files:
     if not os.path.isdir(f):
         run(('install_name_tool', '-add_rpath', '@executable_path/../../Library/Frameworks', f))
+        run(('install_name_tool', '-add_rpath', '@executable_path/../Library/Frameworks', f))
