@@ -42,7 +42,8 @@ qt_install_lib_path = os.path.join(qt_path, 'PyQt4')
 files = glob.glob(qt_install_lib_path + "/*.so")
 for f in files:
     if not os.path.isdir(f):
-        run(('install_name_tool', '-rpath', old_rpath, '@loader_path/../../../../Frameworks/', f))
+        run(('install_name_tool', '-rpath', old_rpath, '@loader_path/../../../../Frameworks', f))
+        run(('install_name_tool', '-add_rpath', '@loader_path/../Library/Frameworks', f))
 
 qt_install_bin_path = os.path.join(qt_path, 'bin')
 files = glob.glob(qt_install_bin_path + "/*")
