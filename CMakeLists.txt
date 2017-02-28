@@ -83,11 +83,16 @@ find_package(PythonInterp REQUIRED)
 include(FindAnyProject)
 
 find_anyproject(SIP REQUIRED)
-set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --sip ${SIP_BINARY_PATH} --sip-incdir ${SIP_INCLUDE_DIR} -j ${CPU_COUNT})
+if(WIN32)
+    set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --sip ${SIP_BINARY_PATH}.exe --sip-incdir ${SIP_INCLUDE_DIR} -j ${CPU_COUNT})
+else(WIN32)
+    set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --sip ${SIP_BINARY_PATH} --sip-incdir ${SIP_INCLUDE_DIR} -j ${CPU_COUNT})
+endif(WIN32)
 
 find_anyproject(Qt4 REQUIRED COMPONENTS QtCore)
-
-set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --qmake ${QT_QMAKE_EXECUTABLE})
+if(NOT WIN32)
+    set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --qmake ${QT_QMAKE_EXECUTABLE})
+endif()
 
 message(STATUS "Configure args: ${CONFIGURE_ARGS}")
 
@@ -117,17 +122,29 @@ foreach(CONF_OUT_LINE ${CONF_OUT})
     endif()
 endforeach()
 
-#TODO: Fix on WINDOWS
-add_custom_target(build_qt ALL make -j ${CPU_COUNT}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
-    VERBATIM
-)
+if(WIN32)
+    add_custom_target(build_qt ALL nmake
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
+        VERBATIM
+    )
 
-install(CODE "execute_process(
-              COMMAND make install
-              WORKING_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
-             )"
-)
+    install(CODE "execute_process(
+                  COMMAND nmake install
+                  WORKING_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
+                 )"
+    )
+else()
+    add_custom_target(build_qt ALL make -j ${CPU_COUNT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
+        VERBATIM
+    )
+
+    install(CODE "execute_process(
+                  COMMAND make install
+                  WORKING_DIRECTORY  ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
+                 )"
+    )
+endif()
 
 if(OSX_FRAMEWORK)
     install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/cmake/mac_rpath_fix.py ${QT_LIBRARY_DIR}
