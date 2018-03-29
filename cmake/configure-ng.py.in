@@ -1148,8 +1148,8 @@ def create_optparser(target_config):
                     "wrapper is FILE [default: %s]" %
                             target_config.pyuic_interpreter)
 
-    if sys.platform != 'win32':
-        g.add_option("--qmake", "-q", dest='qmake', type='string',
+    #if sys.platform != 'win32':
+    g.add_option("--qmake", "-q", dest='qmake', type='string',
                 default=None, action='callback', callback=store_abspath_exe,
                 metavar="FILE",
                 help="the pathname of qmake is FILE [default: "

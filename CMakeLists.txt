@@ -196,33 +196,59 @@ set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --sip ${SIP_BINARY_PATH} --sip-incdir ${SIP
 
 find_anyproject(ZLIB REQUIRED)
 find_anyproject(Qt4 REQUIRED COMPONENTS QtCore)
-if(OSX_FRAMEWORK)
-    # Create qt.conf
-    get_property(QT_QMAKE_EXECUTABLE TARGET Qt4::qmake PROPERTY IMPORTED_LOCATION)
-    get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" PATH)
-    get_filename_component(QT_ROOT_DIR "${QT_BIN_DIR}" PATH)
-    file(WRITE ${QT_BIN_DIR}/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
-    set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --qmake=${QT_QMAKE_EXECUTABLE})
+# Create qt.conf
+get_property(QT_QMAKE_EXECUTABLE TARGET Qt4::qmake PROPERTY IMPORTED_LOCATION)
+get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" PATH)
+get_filename_component(QT_ROOT_DIR "${QT_BIN_DIR}" PATH)
+file(WRITE ${QT_BIN_DIR}/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
+set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --qmake=${QT_QMAKE_EXECUTABLE})
+file(READ ${PROJECT_SOURCE_DIR}/cmake/configure-ng.py.in _CONF)
 
+if(OSX_FRAMEWORK)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
     get_filename_component(ZLIB_ROOT_DIR "${ZLIB_INCLUDE_DIRS}" PATH)
     get_filename_component(ZLIB_ROOT_DIR "${ZLIB_ROOT_DIR}" PATH)
 
-    file(READ ${PROJECT_SOURCE_DIR}/cmake/configure-ng.py.in _CONF)
     string(REPLACE "pro_lines.append('CONFIG -= cmake')" "pro_lines.append('CONFIG -= app_bundle')
     pro_lines.append('unix:QMAKE_LFLAGS += \\\"-Wl,-rpath,\\'${QT_ROOT_DIR}/lib\\' -Wl,-rpath,\\'${ZLIB_ROOT_DIR}\\'\\\"')
 " _CONF "${_CONF}")
     string(REPLACE "os.path.join(target_config.pyqt_module_dir" "os.path.join('..', '${INSTALL_PYTHON_DIR}'" _CONF "${_CONF}")
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/configure-ng.py "${_CONF}")
 
+    set(CONFIGURE_CMD ${CMAKE_COMMAND} -E env "${FLAGS}")
+elseif(WIN32)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/release/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
+    file(COPY ${QT_ROOT_DIR}/lib/QtCore4.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/release/)
+    file(GLOB PRLS "${QT_ROOT_DIR}/lib/*.prl")
+    file(REMOVE ${PRLS})
+    get_filename_component(VC_COMPILER_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+    find_file(VCVARSALL_BAT
+        NAMES vsdevcmd.bat vcvarsall.bat
+        PATHS "${VC_COMPILER_DIR}/.." "${VC_COMPILER_DIR}/../.." "${VC_COMPILER_DIR}/../../../../../../../.." "${VC_COMPILER_DIR}/../../../../../../.."
+        PATH_SUFFIXES "Common7/Tools" "Tools"
+    )
+
+    if(DEFINED CMAKE_GENERATOR)
+        # TODO: Need different arguments for vsdevcmd.bat and vcvarsall.bat. Now support only VC2017
+        string(FIND ${CMAKE_GENERATOR} "Win64" POS)
+        if(POS GREATER -1)
+            set(VCVARSALL_BAT_ARG -arch=amd64)
+        else()
+            set(VCVARSALL_BAT_ARG -arch=x86)
+        endif()
+    endif()
+
+    message(STATUS "VCVARSALL_BAT: ${VCVARSALL_BAT} ${VCVARSALL_BAT_ARG}")
+
+    set(CONFIGURE_CMD ${VCVARSALL_BAT} ${VCVARSALL_BAT_ARG} &&)
 endif()
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/configure-ng.py "${_CONF}")
 
 message(STATUS "Configure args: ${CONFIGURE_ARGS}")
 
 macro(build_py ver)
-    status_message("Configure in ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}: ${PYTHON${ver}_EXECUTABLE} configure-ng.py ${CONFIGURE_ARGS}")
-    execute_process(COMMAND ${CMAKE_COMMAND} -E env "${FLAGS}"
-        ${PYTHON${ver}_EXECUTABLE} configure-ng.py ${CONFIGURE_ARGS}
+    set(_CMD ${CONFIGURE_CMD} ${PYTHON${ver}_EXECUTABLE} configure-ng.py ${CONFIGURE_ARGS})
+    status_message("Configure in ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}\nCOMMAND: ${_CMD}\nENV: ${FLAGS}")
+    execute_process(COMMAND ${_CMD}
         OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/configure.out
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
     )
@@ -237,24 +263,24 @@ macro(build_py ver)
 
     if(WIN32)
         add_custom_target(build_py${ver} ALL
-            COMMAND ${CMAKE_COMMAND} -E env "${FLAGS}" nmake
+            COMMAND ${CONFIGURE_CMD} nmake
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
             VERBATIM
         )
         add_custom_target(install_py${ver} ALL
-            COMMAND ${CMAKE_COMMAND} -E env "${FLAGS}" nmake install
+            COMMAND ${CONFIGURE_CMD} nmake install
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
             DEPENDS build_py${ver}
             VERBATIM
         )
     else()
         add_custom_target(build_py${ver} ALL
-            COMMAND ${CMAKE_COMMAND} -E env "${FLAGS}" make
+            COMMAND ${CONFIGURE_CMD} make
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
             VERBATIM
         )
         add_custom_target(install_py${ver} ALL
-            COMMAND ${CMAKE_COMMAND} -E env "${FLAGS}" make install
+            COMMAND ${CONFIGURE_CMD} make install
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
             DEPENDS build_py${ver}
             VERBATIM
@@ -263,7 +289,7 @@ macro(build_py ver)
 
     if(OSX_FRAMEWORK)
         add_custom_target(fix_py${ver} ALL
-            COMMAND ${CMAKE_COMMAND} -E env "${FLAGS}"
+            COMMAND ${CONFIGURE_CMD}
             ${PYTHON${ver}_EXECUTABLE} ${CMAKE_SOURCE_DIR}/cmake/mac_rpath_fix.py
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             DEPENDS install_py${ver}
