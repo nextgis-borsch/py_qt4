@@ -196,15 +196,15 @@ set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --sip ${SIP_BINARY_PATH} --sip-incdir ${SIP
 
 find_anyproject(ZLIB REQUIRED)
 find_anyproject(Qt4 REQUIRED COMPONENTS QtCore)
-# Create qt.conf
-get_property(QT_QMAKE_EXECUTABLE TARGET Qt4::qmake PROPERTY IMPORTED_LOCATION)
-get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" PATH)
-get_filename_component(QT_ROOT_DIR "${QT_BIN_DIR}" PATH)
-file(WRITE ${QT_BIN_DIR}/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
-file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
-set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --qmake=${QT_QMAKE_EXECUTABLE})
-
 if(OSX_FRAMEWORK)
+    # Create qt.conf
+    get_property(QT_QMAKE_EXECUTABLE TARGET Qt4::qmake PROPERTY IMPORTED_LOCATION)
+    get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" PATH)
+    get_filename_component(QT_ROOT_DIR "${QT_BIN_DIR}" PATH)
+    file(WRITE ${QT_BIN_DIR}/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
+    set(CONFIGURE_ARGS ${CONFIGURE_ARGS} --qmake=${QT_QMAKE_EXECUTABLE})
+
     get_filename_component(ZLIB_ROOT_DIR "${ZLIB_INCLUDE_DIRS}" PATH)
     get_filename_component(ZLIB_ROOT_DIR "${ZLIB_ROOT_DIR}" PATH)
 
@@ -318,6 +318,7 @@ set(CPACK_MONOLITHIC_INSTALL ON)
 set(CPACK_STRIP_FILES TRUE)
 
 # Get cpack zip archive name
+get_cpack_filename(${VERSION} PROJECT_CPACK_FILENAME)
 set(CPACK_PACKAGE_FILE_NAME ${PROJECT_CPACK_FILENAME})
 
 include(CPack)
