@@ -20,7 +20,7 @@ import glob
 
 install_dir = 'inst'
 
-old_rpath = sys.argv[1]
+# old_rpath = sys.argv[1]
 
 def run(args):
     print 'calling ' + string.join(args)
@@ -38,11 +38,12 @@ if sys.platform != 'darwin':
 # Console files put to the <NextGIS>/usr/bin
 repo_root = os.getcwd()
 qt_path = os.path.join(repo_root, install_dir)
-qt_install_lib_path = os.path.join(qt_path, 'PyQt4')
+qt_install_lib_path = os.path.join(qt_path, 'Library','Python','2.7','site-packages', 'PyQt4')
 files = glob.glob(qt_install_lib_path + "/*.so")
 for f in files:
     if not os.path.isdir(f):
-        run(('install_name_tool', '-rpath', old_rpath, '@loader_path/../../../../Frameworks', f))
+        # run(('install_name_tool', '-rpath', old_rpath, '@loader_path/../../../../Frameworks', f))
+        run(('install_name_tool', '-add_rpath', '@loader_path/../../../../Frameworks', f))
         run(('install_name_tool', '-add_rpath', '@loader_path/../Library/Frameworks', f))
 
 qt_install_bin_path = os.path.join(qt_path, 'bin')

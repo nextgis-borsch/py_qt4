@@ -29,9 +29,9 @@ import sys
 
 
 # Initialise the constants.
-PYQT_VERSION_STR = "4.12"
+PYQT_VERSION_STR = "4.12.1"
 
-SIP_MIN_VERSION = '4.19'
+SIP_MIN_VERSION = '4.19.1'
 
 # The different values QLibraryInfo::licensee() can return for the LGPL version
 # of Qt.
@@ -829,7 +829,6 @@ int main(int argc, char **argv)
             # See if it is a framework.
             if os.access(os.path.join(qt_config.QT_INSTALL_LIBS, 'QtCore.framework'), os.F_OK):
                 self.qt_framework = True
-                self.qmake_variables.append('QMAKE_LFLAGS += -Wl,-rpath,\'' + qt_config.QT_INSTALL_LIBS + '\'')
 
 
     def post_configuration(self):
@@ -1275,8 +1274,6 @@ def check_modules(target_config, verbose):
                 'new QScriptEngine()')
         check_module(target_config, verbose, 'QtScriptTools',
                 'qscriptenginedebugger.h', 'new QScriptEngineDebugger()')
-        check_module(target_config, verbose, 'QtXml', 'qdom.h',
-                'new QDomDocument()')
 
     check_module(target_config, verbose, 'QtOpenGL', 'qgl.h',
             'new QGLWidget()')
@@ -1288,6 +1285,8 @@ def check_modules(target_config, verbose):
             'QTest::qSleep(0)')
     check_module(target_config, verbose, 'QtWebKit', 'qwebpage.h',
             'new QWebPage()')
+    check_module(target_config, verbose, 'QtXml', 'qdom.h',
+            'new QDomDocument()')
     check_module(target_config, verbose, 'QtXmlPatterns', 'qxmlname.h',
             'new QXmlName()')
 
@@ -1839,10 +1838,10 @@ def run_make(target_config, verbose, exe, makefile_name):
         make = 'make'
         makefile_target = ''
 
-        if target_config.py_platform == 'darwin':
-            platform_exe = os.path.join(exe + '.app', 'Contents', 'MacOS', exe)
-        else:
-            platform_exe = os.path.join('.', exe)
+        # if target_config.py_platform == 'darwin':
+        #     platform_exe = os.path.join(exe + '.app', 'Contents', 'MacOS', exe)
+        # else:
+        platform_exe = os.path.join('.', exe)
 
     remove_file(platform_exe)
 
@@ -2077,6 +2076,7 @@ def compile_qt_program(target_config, verbose, name, source, mname):
     pro_add_qt_dependencies(target_config, metadata, pro_lines)
     pro_lines.append('TARGET = %s' % name)
     pro_lines.append('SOURCES = %s' % name_source)
+    pro_lines.append('CONFIG -= cmake')
 
     f = open_for_writing(name_pro)
     f.write('\n'.join(pro_lines))
@@ -2167,6 +2167,10 @@ def get_sip_flags(target_config):
     if target_config.py_version < 0x030000:
         sip_flags.append('-x')
         sip_flags.append('Py_v3')
+
+    # Generate code for a debug build of Python if needed.
+    if hasattr(sys, 'gettotalrefcount'):
+        sip_flags.append('-D')
 
     return ' '.join(sip_flags)
 
