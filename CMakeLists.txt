@@ -246,7 +246,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/configure-ng.py "${_CO
 message(STATUS "Configure args: ${CONFIGURE_ARGS}")
 
 macro(build_py ver)
-    set(_CMD ${CONFIGURE_CMD} ${PYTHON${ver}_EXECUTABLE} configure-ng.py ${CONFIGURE_ARGS})
+    set(_CMD ${CONFIGURE_CMD} ${PYTHON${ver}_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/configure-ng.py ${CONFIGURE_ARGS})
     status_message("Configure in ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}\nCOMMAND: ${_CMD}\nENV: ${FLAGS}")
     execute_process(COMMAND ${_CMD}
         OUTPUT_FILE ${CMAKE_CURRENT_BINARY_DIR}/configure.out
