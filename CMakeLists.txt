@@ -253,11 +253,19 @@ cd ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
 set ${FLAGS}
 ${PYTHON${ver}_EXECUTABLE} configure-ng.py
 ")
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/make.bat "@echo off
+${VCVARSALL_BAT} ${VCVARSALL_BAT_ARG}
+cd ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
+set ${FLAGS}
+%1 %2
+")
+        set(CONFIGURE_CMD ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/make.bat)
         set(_CMD ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/conf.bat)
     else()
+        set(CONFIGURE_CMD ${CMAKE_COMMAND} -E env "${FLAGS}")
         set(_CMD ${CONFIGURE_CMD} ${PYTHON${ver}_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/configure-ng.py ${CONFIGURE_ARGS})
     endif()
-
 
     status_message("Configure in ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}\nCOMMAND: ${_CMD}\nENV: ${FLAGS}")
     execute_process(COMMAND ${_CMD}
