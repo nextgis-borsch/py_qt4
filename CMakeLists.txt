@@ -247,11 +247,12 @@ message(STATUS "Configure args: ${CONFIGURE_ARGS}")
 
 macro(build_py ver)
     if(WIN32)
+        string(REPLACE ";" " " CONFIGURE_ARGS ${CONFIGURE_ARGS})
         file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/conf.bat "@echo off
 call \"${VCVARSALL_BAT}\" ${VCVARSALL_BAT_ARG}
 cd ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
 set ${FLAGS}
-${PYTHON${ver}_EXECUTABLE} configure-ng.py
+${PYTHON${ver}_EXECUTABLE} configure-ng.py ${CONFIGURE_ARGS}
 ")
 
         file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/make.bat "@echo off
