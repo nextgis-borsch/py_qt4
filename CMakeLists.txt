@@ -226,7 +226,7 @@ elseif(WIN32)
     )
 
     get_filename_component(ZLIB_ROOT_DIR "${ZLIB_INCLUDE_DIRS}" PATH)
-    file(COPY ${QT_ROOT_DIR}/lib/zlib1.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/release/)
+    file(COPY ${QT_ROOT_DIR}/bin/zlib1.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/release/)
 
     if(DEFINED CMAKE_GENERATOR)
         # TODO: Need different arguments for vsdevcmd.bat and vcvarsall.bat. Now support only VC2017
