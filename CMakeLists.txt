@@ -213,8 +213,6 @@ if(OSX_FRAMEWORK)
     pro_lines.append('unix:QMAKE_LFLAGS += \\\"-Wl,-rpath,\\'${QT_ROOT_DIR}/lib\\' -Wl,-rpath,\\'${ZLIB_ROOT_DIR}\\'\\\"')
 " _CONF "${_CONF}")
     string(REPLACE "os.path.join(target_config.pyqt_module_dir" "os.path.join('..', '${INSTALL_PYTHON_DIR}'" _CONF "${_CONF}")
-
-    set(CONFIGURE_CMD ${CMAKE_COMMAND} -E env "${FLAGS}")
 elseif(WIN32)
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/release/qt.conf "[Paths]\nPrefix = ${QT_ROOT_DIR}")
     file(COPY ${QT_ROOT_DIR}/lib/QtCore4.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/release/)
@@ -227,6 +225,9 @@ elseif(WIN32)
         PATH_SUFFIXES "Common7/Tools" "Tools"
     )
 
+    get_filename_component(ZLIB_ROOT_DIR "${ZLIB_INCLUDE_DIRS}" PATH)
+    file(COPY ${QT_ROOT_DIR}/lib/zlib1.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/release/)
+
     if(DEFINED CMAKE_GENERATOR)
         # TODO: Need different arguments for vsdevcmd.bat and vcvarsall.bat. Now support only VC2017
         string(FIND ${CMAKE_GENERATOR} "Win64" POS)
@@ -238,8 +239,6 @@ elseif(WIN32)
     endif()
 
     message(STATUS "VCVARSALL_BAT: ${VCVARSALL_BAT} ${VCVARSALL_BAT_ARG}")
-
-    set(CONFIGURE_CMD ${VCVARSALL_BAT} ${VCVARSALL_BAT_ARG} &&)
 endif()
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/configure-ng.py "${_CONF}")
 
@@ -247,7 +246,7 @@ message(STATUS "Configure args: ${CONFIGURE_ARGS}")
 
 macro(build_py ver)
     if(WIN32)
-        string(REPLACE ";" " " CONFIGURE_ARGS ${CONFIGURE_ARGS})
+        string(REPLACE ";" "  " CONFIGURE_ARGS "${CONFIGURE_ARGS}")
         file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}/conf.bat "@echo off
 call \"${VCVARSALL_BAT}\" ${VCVARSALL_BAT_ARG}
 cd ${CMAKE_CURRENT_BINARY_DIR}/${PYQT_INPUT_NAME}
