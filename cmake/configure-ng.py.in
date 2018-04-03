@@ -377,12 +377,13 @@ class HostPythonConfiguration:
             py_minor = (self.version >> 8) & 0xff
 
             # In Python v3.4 and later there is no pythonw.
-            if (py_major == 3 and py_minor >= 4) or py_major >= 4:
-                exe = "python"
-            else:
-                exe = "pythonw"
-
-            self.pyuic_interpreter = '%s%d.%d' % (exe, py_major, py_minor)
+            #if (py_major == 3 and py_minor >= 4) or py_major >= 4:
+            #    exe = "python"
+            #else:
+            #    exe = "pythonw"
+            #
+            #self.pyuic_interpreter = '%s%d.%d' % (exe, py_major, py_minor)
+            self.pyuic_interpreter = 'python'
         else:
             self.pyuic_interpreter = sys.executable
 
