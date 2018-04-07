@@ -369,12 +369,12 @@ class HostPythonConfiguration:
             self.lib_dir = sys.prefix + '/lib'
 
         # The name of the interpreter used by the pyuic4 wrapper.
-        if sys.platform == 'darwin':
+        # if sys.platform == 'darwin':
             # The installation of MacOS's python is a mess that changes from
             # version to version and where sys.executable is useless.
 
-            py_major = self.version >> 16
-            py_minor = (self.version >> 8) & 0xff
+            # py_major = self.version >> 16
+            # py_minor = (self.version >> 8) & 0xff
 
             # In Python v3.4 and later there is no pythonw.
             #if (py_major == 3 and py_minor >= 4) or py_major >= 4:
@@ -383,9 +383,10 @@ class HostPythonConfiguration:
             #    exe = "pythonw"
             #
             #self.pyuic_interpreter = '%s%d.%d' % (exe, py_major, py_minor)
-            self.pyuic_interpreter = 'python'
-        else:
-            self.pyuic_interpreter = sys.executable
+            # self.pyuic_interpreter = 'python'
+        # else:
+            # self.pyuic_interpreter = sys.executable
+        self.pyuic_interpreter = 'python'    
 
 
 class TargetQtConfiguration:
