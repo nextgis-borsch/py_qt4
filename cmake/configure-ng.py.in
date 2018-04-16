@@ -386,7 +386,7 @@ class HostPythonConfiguration:
             # self.pyuic_interpreter = 'python'
         # else:
             # self.pyuic_interpreter = sys.executable
-        self.pyuic_interpreter = 'python'    
+        self.pyuic_interpreter = 'python'
 
 
 class TargetQtConfiguration:
@@ -442,16 +442,17 @@ class TargetConfiguration:
 
         # The qmake spec we want to use.
         if self.py_platform == 'win32':
-            if self.py_version >= 0x030500:
-                self.qmake_spec = 'win32-msvc2015'
-            elif self.py_version >= 0x030300:
-                self.qmake_spec = 'win32-msvc2010'
-            elif self.py_version >= 0x020600:
-                self.qmake_spec = 'win32-msvc2008'
-            elif self.py_version >= 0x020400:
-                self.qmake_spec = 'win32-msvc.net'
-            else:
-                self.qmake_spec = 'win32-msvc'
+            self.qmake_spec = 'win32-msvc2015' # Qt4 don't support 2017
+            # if self.py_version >= 0x030500:
+            #     self.qmake_spec = 'win32-msvc2015'
+            # elif self.py_version >= 0x030300:
+            #     self.qmake_spec = 'win32-msvc2010'
+            # elif self.py_version >= 0x020600:
+            #     self.qmake_spec = 'win32-msvc2008'
+            # elif self.py_version >= 0x020400:
+            #     self.qmake_spec = 'win32-msvc.net'
+            # else:
+            #     self.qmake_spec = 'win32-msvc'
         else:
             # Use the Qt default.  (We may update it for OS/X later.)
             self.qmake_spec = ''
